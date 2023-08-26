@@ -1,0 +1,200 @@
+---
+title: "Laboratorio No. 1"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
+code within the notebook, the results appear beneath the code.
+Try executing this chunk by clicking the *Run* button within the chunk or by
+placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
+
+## Datos del curso
+- Seminario de investigación de Operaciones 2
+- Catedrático: Ing. Preng Solares
+- Auxiliar: Dimas
+
+
+## Datos del estudiante
+- Nombre: Otto Chamo
+- Carne: 19001395
+- Sección: An
+
+## Instalación de librerías e imports
+```{r}
+install.packages("readxl")
+install.packages("ggplot2")
+```
+
+```{r}
+library("readxl")
+library("ggplot2")
+```
+
+
+## Ejercicio 1
+
+Utilizando R, demuestre que los valores estimados $B_0$ =	−0.014452 y $B_1$
+=	0.7240 utilizando la tabla Wages.xlsx , son en realidad los estimadores MCO.
+No podrá usar la función lm, recuerde como se calcula $B_0$y $B_1$ utilizando
+las ecuaciones deducidas en clase.
+
+## Import Dataset
+
+```{r}
+table_wages_data <- read_excel("Table_Wages.xls")
+table_wages_data
+```
+## Procedimiento
+```{r}
+# Vamos a calcular la suma de las columnas X Y
+yearsOfSchooling = table_wages_data$`Years of Schooling`
+meanHourlyWage = table_wages_data$`Mean Hourly Wage`
+
+sum_X = sum(yearsOfSchooling)
+sum_Y = sum(meanHourlyWage)
+
+cat('La suma de los años es: ', sum_X, '\n')
+cat('La suma del salarios es: ', sum_Y,'\n')
+
+# Vamos a calcular las medias de las columnas ya que también los necesitamos
+
+mean_X = mean(yearsOfSchooling)
+mean_Y = mean(meanHourlyWage)
+
+cat('La media de los años es: ', mean_X, '\n')
+cat('La media del salarios es: ', mean_Y,'\n')
+```
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by
+pressing *Ctrl+Alt+I*.
+When you save the notebook, an HTML file containing the code and output will be
+saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to
+preview the HTML file).
+The preview shows you a rendered HTML copy of the contents of the editor.
+Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead,
+the output of the chunk when it was last run in the editor is displayed.
+```{r}
+column_x = yearsOfSchooling - mean_X
+column_y = meanHourlyWage - mean_Y
+column_x_y = column_x * column_y
+column_x_2 = column_x * column_x
+
+dataframeOfCalcs = data.frame(
+  yearsOfSchooling,
+  meanHourlyWage,
+  x = column_x,
+  y = column_y,
+  xy = column_x_y,
+  'x^2' = column_x_2
+)
+
+print(dataframeOfCalcs)
+```
+Para calcular el coeficiente $B_2$ se utiliza la siguiente ecuación:
+$$B_1 = \frac{\sum xy}{x^2}$$
+Para calcular el coeficiente $B_1$ se utiliza la siguiente ecuación:
+$$B_0 = \overline{Y} -B_{1}\overline{x}$$
+```{r}
+# Calculamos $B_1$
+sum_x_y <- sum(column_x_y)
+sum_x_2 <- sum(column_x_2)
+b1 <- sum_x_y / sum_x_2
+print(b1)
+```
+```{r}
+# Calculamos $B_0$
+b0_result = mean_Y - (b2 * mean_X)
+
+print(b0_result)
+```
+Hemos demostrado que los valores estimados de $B_0$ y $B_1$ realmente son $−0.014452$ y	$0.7240$ respectivamente.
+
+## Fin procedimiento
+
+## Ejercicio 2
+
+Adjunto a este documento encontrará una tabla (Tabla PIB) que proporciona datos sobre el producto 
+interno bruto (PIB) de Estados Unidos de 1959 a 2005.
+
+- Grafique los datos del PIB nominal y real. 
+- Sea Y el PIB y X el tiempo (medido cronológicamente, empezando con 1 para 1959, 2 para 1960, 
+hasta 47 para 2005), observe si el siguiente modelo se ajusta a los datos del PIB: 
+
+$$Y_t = \beta_0 + \beta_1X_t + u_t$$
+
+Estime este modelo para el PIB nominal y real. 
+
+- ¿Cómo interpretaría $\beta$? 
+- Si existiera una diferencia entre el valor estimado de β2 para el PIB nominal y el estimado para el 
+PIB real, ¿qué la explicaría?
+```{r}
+ordinal_encoding <- function(x) {
+  as.numeric(factor(x, levels = unique(x)))
+}
+```
+
+```{r}
+## Import Dataset
+
+table_pib_data <- read_excel("Table_PIB.xls")
+table_pib_data
+```
+
+# Descripción del dataset
+```{r}
+str(table_pib_data)
+```
+## Gráfico
+```{r}
+#table_pib_data %>% ggplot(aes(x= Year, y = NGDP, z = RGDP, group = 1)) +
+ # geom_line()
+
+#plot(table_pib_data$Year, table_pib_data$NGDP, type = "l", col = 1, ylim = c(0, 18000))  # Plot with Base R
+#lines(table_pib_data$Year, table_pib_data$NGDP, type = "l", col = 2)
+#lines(table_pib_data$Year, table_pib_data$RGDP, type = "l", col = 3)
+```
+
+
+```{r}
+table_pib_data$Year <- as.numeric(table_pib_data$Year)
+ggplot(table_pib_data, aes(x = Year)) +
+  geom_line(aes(y = NGDP, color = "NGDP"), linetype = "solid") +
+  geom_line(aes(y = RGDP, color = "RGDP"), linetype = "dashed") +
+  labs(x = "Year", y = "Value", title = "Nominal and Real GDP Over the Years") +
+  scale_color_manual(values = c("NGDP" = "blue", "RGDP" = "red")) +
+  theme_minimal()
+```
+```{r}
+data_encoded <- table_pib_data %>% mutate(Year = ordinal_encoding(Year))
+print(data_encoded)
+```
+
+# Modelo para PIB Real
+```{r}
+pib_real_dt <- data.frame(
+  Year = data_encoded$Year,
+  RGDP = data_encoded$RGDP
+)
+pib_real_dt
+```
+```{r}
+sum_x_year <- sum(pib_real_dt$Year)
+cat("La suma de los años es: ", sum_x_year, "\n")
+mean_x_year <- mean(pib_real_dt$Year)
+cat("La media de los años es: ", mean_x_year, "\n")
+
+sum_y_rpib <- sum(pib_real_dt$RGDP)
+cat("La suma de los años es: ", sum_y_rpib, "\n")
+mean_Y_rpib <- mean(pib_real_dt$RGDP)
+cat("La media de los años es: ", mean_Y_rpib, "\n")
+
+pib_real_dt <- pib_real_dt %>%
+  mutate(x_i = (Year - mean_x_year))
+
+pib_real_dt <- pib_real_dt %>%
+  mutate(y_i = (RGDP - mean_Y_rpib))
+
+pib_real_dt
+
+```
+
+
